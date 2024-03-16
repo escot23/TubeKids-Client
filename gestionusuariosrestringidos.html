@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Usuarios Restringidos</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.2/min/dropzone.min.css" rel="stylesheet">
+    <style>
+        /* Agrega tus estilos personalizados aquí si es necesario */
+        .avatar {
+            width: 100px;
+            height: 100px;
+            cursor: pointer;
+        }
+
+        .avatar:hover {
+            border: 2px solid blue;
+            /* Cambia el borde cuando se pasa el ratón sobre el avatar */
+        }
+
+        /* Estilos para el contenedor de Dropzone */
+        .dropzone {
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            min-height: 100px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Barra de navegación -->
+    <div id="navbar-container"></div>
+    <script>
+        // Cargar la barra de navegación desde el archivo navbar.html
+        fetch('navbar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('navbar-container').innerHTML = data;
+            });
+    </script>
+
+    <div class="container mt-5">
+        <h1 class="mb-4">Registro de Usuarios Restringidos</h1>
+
+        <!-- Formulario de registro de usuario restringido -->
+        <form id="formulario-nuevo-usuario" class="needs-validation" novalidate>
+            <input type="hidden" id="userId"> <!-- Campo oculto para almacenar el ID del usuario -->
+
+            <div class="form-group">
+                <label for="nombre">Nombre:</label>
+                <input type="text" class="form-control" id="nombre" required>
+                <div class="invalid-feedback">
+                    Por favor ingresa un nombre válido.
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="pin">PIN:</label>
+                <input type="text" class="form-control" id="pin" required pattern="[0-9]{6}">
+                <div class="invalid-feedback">
+                    Por favor ingresa un PIN válido (6 dígitos numéricos).
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="avatar">Avatar:</label>
+                <!-- Contenedor de Dropzone para la carga de imágenes -->
+                <div id="dropzone" class="dropzone"></div>
+                <!-- Input hidden para almacenar la URL de la imagen -->
+                <input type="hidden" id="avatar" required>
+                <div class="invalid-feedback">
+                    Por favor selecciona un avatar.
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="edad">Edad:</label>
+                <input type="number" class="form-control" id="edad" required>
+                <div class="invalid-feedback">
+                    Por favor ingresa una edad válida.
+                </div>
+            </div>
+
+            <!-- Botón para agregar o editar usuario, dependiendo de la situación -->
+            <button type="button" class="btn btn-primary" onclick="GuardarUsuario()">Agregar Usuario</button>
+        </form>
+
+        <!-- Formulario de edición de usuario -->
+        <form id="formulario-edicion-usuario" class="needs-validation" novalidate style="display: none;">
+            <input type="hidden" id="userIdEditar"> <!-- Campo oculto para almacenar el ID del usuario -->
+
+            <div class="form-group">
+                <label for="nombreEditar">Nombre:</label>
+                <input type="text" class="form-control" id="nombreEditar" required>
+                <div class="invalid-feedback">
+                    Por favor ingresa un nombre válido.
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="pinEditar">PIN:</label>
+                <input type="text" class="form-control" id="pinEditar" required pattern="[0-9]{6}">
+                <div class="invalid-feedback">
+                    Por favor ingresa un PIN válido (6 dígitos numéricos).
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="avatarEditar">Avatar:</label>
+                <!-- Contenedor de Dropzone para la carga de imágenes -->
+                <div id="dropzoneEditar" class="dropzone"></div>
+                <!-- Input hidden para almacenar la URL de la imagen -->
+                <input type="hidden" id="avatarEditar" required>
+                <div class="invalid-feedback">
+                    Por favor selecciona un avatar.
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="edadEditar">Edad:</label>
+                <input type="number" class="form-control" id="edadEditar" required>
+                <div class="invalid-feedback">
+                    Por favor ingresa una edad válida.
+                </div>
+            </div>
+
+            <!-- Botón para guardar los cambios -->
+            <button type="button" class="btn btn-primary" onclick="GuardarCambiosUsuario()">Guardar Cambios</button>
+        </form>
+
+        <!-- Tabla para mostrar los usuarios existentes -->
+        <table class="table mt-5">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>PIN</th>
+                    <th>Edad</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="usuarios-restringidos-body">
+                <!-- Aquí se llenará dinámicamente con datos de usuarios -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Script de Dropzone.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.2/min/dropzone.min.js"></script>
+
+    <script>
+
+        // Función para cargar la tabla de usuarios restringidos
+        function cargarUsuariosRestringidos() {
+            fetch('http://localhost:3000/usuariosrestringido')
+                .then(response => response.json())
+                .then(usuarios => {
+                    const tbody = document.getElementById('usuarios-restringidos-body');
+                    tbody.innerHTML = '';
+                    usuarios.forEach(usuario => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${usuario.nombre}</td>
+                            <td>${usuario.pin}</td>
+                            <td>${usuario.edad}</td>
+                            <td>
+                                <button type="button" class="btn btn-warning" onclick="EditarUsuario('${usuario._id}')">Editar</button>
+                                <button type="button" class="btn btn-danger" onclick="EliminarUsuario('${usuario._id}')">Eliminar</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                })
+                .catch(error => console.error('Error al cargar usuarios restringidos:', error));
+        }
+
+        // Función para guardar o editar usuario
+        function GuardarUsuario() {
+            const ajaxRequest = new XMLHttpRequest();
+            ajaxRequest.addEventListener("load", function () {
+                if (ajaxRequest.status >= 200 && ajaxRequest.status < 300) {
+                    const data = JSON.parse(ajaxRequest.responseText);
+                    alert('Te has registrado correctamente');
+                    window.location.reload(); // Recargar la página para actualizar la tabla
+                } else {
+                    console.error('Error en la solicitud:', ajaxRequest.responseText);
+                    alert("Hubo un error al intentar registrar el usuario uu");
+                }
+            });
+            ajaxRequest.addEventListener("error", function () {
+                console.error('Error en la solicitud:', ajaxRequest.responseText);
+                alert("Hubo un error al intentar registrar el usuario xxxx");
+            });
+
+            const userId = document.getElementById("userId").value;
+            let url = "http://localhost:3000/usuariosrestringido";
+            let method = "POST";
+            console.log(method, url);
+            if (userId) {
+                url += `/${userId}`;
+                method = "PUT";
+            }
+            console.log(userId);
+            ajaxRequest.open(method, url);
+            ajaxRequest.setRequestHeader("Content-Type", "application/json");
+
+            const data = {
+                nombre: document.getElementById("nombre").value,
+                pin: document.getElementById("pin").value,
+                avatar: document.getElementById("avatar").value,
+                edad: document.getElementById("edad").value
+            };
+            console.log(data);
+            ajaxRequest.send(JSON.stringify(data));
+        }
+
+
+
+        function EditarUsuario(usuarioId) {
+            const nuevoNombre = prompt("Ingrese el nuevo nombre del usuario:");
+            const nuevoPin = prompt("Ingrese el nuevo PIN del usuario:");
+            const nuevoAvatar = prompt("Ingrese el nuevo avatar del usuario:");
+            const nuevaEdad = prompt("Ingrese la nueva edad del usuario:");
+
+            if (nuevoNombre && nuevoPin && nuevoAvatar && nuevaEdad) {
+                fetch(`http://localhost:3000/usuariosrestringido/${usuarioId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        nombre: nuevoNombre,
+                        pin: nuevoPin,
+                        avatar: nuevoAvatar,
+                        edad: nuevaEdad
+                    })
+
+                })
+                    .then(response => response.json())
+                    .then(updatedUsuario => {
+                        console.log("Usuario editado correctamente:", updatedUsuario);
+                        alert("Usuario editado correctamente");
+                        location.reload(); // Recargar la página para mostrar los cambios
+                    })
+                    .catch(error => {
+                        console.error('Error al editar el usuario:', error);
+                        alert("Hubo un error al intentar editar el usuario");
+                    });
+            } else {
+                console.log("La edición del usuario fue cancelada.");
+            }
+        }
+
+
+
+        function EliminarUsuario(userId) {
+            if (confirm("¿Estás seguro de que deseas eliminar este usuario?")) {
+                fetch(`http://localhost:3000/usuariosrestringido/${userId}`, {
+                    method: 'DELETE'
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            alert("Usuario restringido eliminado correctamente");
+                            window.location.reload(); // Recargar la página para actualizar la tabla
+                        } else {
+                            const errorMessage = response.statusText || 'Error desconocido'; // Verifica si response.statusText está definido
+                            console.error('Error en la solicitud:', errorMessage);
+                            alert("Hubo un error al intentar eliminar el usuario");
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error en la solicitud:', error);
+                        alert("Hubo un error al intentar eliminar el usuario");
+                    });
+            }
+        }
+
+        // Configuración de Dropzone.js
+        Dropzone.autoDiscover = false;
+        const myDropzone = new Dropzone("#dropzone", {
+            url: "http://localhost:3000/upload-avatar", // Ruta para manejar la carga de imágenes en tu servidor
+            maxFiles: 1,
+            acceptedFiles: "image/*",
+            dictDefaultMessage: "Arrastra y suelta una imagen aquí o haz clic para seleccionar una",
+            init: function () {
+                this.on("success", function (file, response) {
+                    document.getElementById('avatar').value = response.imageUrl;
+                });
+            }
+        });
+        // Al cargar la página, cargar avatares y usuarios restringidos
+        window.onload = function () {
+            cargarUsuariosRestringidos();
+        };
+
+    </script>
+</body>
+
+</html>
