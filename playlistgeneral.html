@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playlist Kids</title>
+    <!-- Agregar enlaces a Bootstrap CSS o cualquier otra librería de estilos -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Playlist Kids</h1>
+        <div id="videoList" class="row">
+            <!-- Los videos se cargarán dinámicamente aquí -->
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            loadPlaylistVideos();
+        });
+
+        function loadPlaylistVideos() {
+            $.ajax({
+                url: 'http://localhost:3000/videos',
+                method: 'GET',
+                success: function (response) {
+                    $('#videoList').empty();
+                    if (Array.isArray(response) && response.length > 0) {
+                        response.forEach(function (video) {
+                            if (video.nombre && video.urlYoutube) {
+                                const videoItem = `
+                                    <div class="col-md-4 mb-4">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <h5 class="card-title">${video.nombre}</h5>
+                                                <div class="embed-responsive embed-responsive-16by9">
+                                                    <iframe class="embed-responsive-item" src="${video.urlYoutube}" allowfullscreen></iframe>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                                $('#videoList').append(videoItem);
+                            } else {
+                                console.error('El video no tiene nombre o URL de YouTube:', video);
+                            }
+                        });
+                    } else {
+                        console.error('La respuesta del servidor no contiene videos válidos:', response);
+                    }
+                },
+                error: function (error) {
+                    console.error('Error al cargar la lista de videos:', error.responseText);
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

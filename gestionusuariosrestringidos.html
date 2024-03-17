@@ -175,44 +175,45 @@
         }
 
         // Función para guardar o editar usuario
-        function GuardarUsuario() {
-            const ajaxRequest = new XMLHttpRequest();
-            ajaxRequest.addEventListener("load", function () {
-                if (ajaxRequest.status >= 200 && ajaxRequest.status < 300) {
-                    const data = JSON.parse(ajaxRequest.responseText);
-                    alert('Te has registrado correctamente');
-                    window.location.reload(); // Recargar la página para actualizar la tabla
-                } else {
-                    console.error('Error en la solicitud:', ajaxRequest.responseText);
-                    alert("Hubo un error al intentar registrar el usuario uu");
-                }
-            });
-            ajaxRequest.addEventListener("error", function () {
-                console.error('Error en la solicitud:', ajaxRequest.responseText);
-                alert("Hubo un error al intentar registrar el usuario xxxx");
-            });
-
-            const userId = document.getElementById("userId").value;
-            let url = "http://localhost:3000/usuariosrestringido";
-            let method = "POST";
-            console.log(method, url);
-            if (userId) {
-                url += `/${userId}`;
-                method = "PUT";
-            }
-            console.log(userId);
-            ajaxRequest.open(method, url);
-            ajaxRequest.setRequestHeader("Content-Type", "application/json");
-
-            const data = {
-                nombre: document.getElementById("nombre").value,
-                pin: document.getElementById("pin").value,
-                avatar: document.getElementById("avatar").value,
-                edad: document.getElementById("edad").value
-            };
-            console.log(data);
-            ajaxRequest.send(JSON.stringify(data));
+function GuardarUsuario() {
+    const ajaxRequest = new XMLHttpRequest();
+    ajaxRequest.addEventListener("load", function () {
+        if (ajaxRequest.status >= 200 && ajaxRequest.status < 300) {
+            const data = JSON.parse(ajaxRequest.responseText);
+            alert('Te has registrado correctamente');
+            window.location.reload(); // Recargar la página para actualizar la tabla
+        } else {
+            console.error('Error en la solicitud:', ajaxRequest.responseText);
+            alert("Hubo un error al intentar registrar el usuario");
         }
+    });
+    ajaxRequest.addEventListener("error", function () {
+        console.error('Error en la solicitud:', ajaxRequest.responseText);
+        alert("Hubo un error al intentar registrar el usuario");
+    });
+
+    const userId = document.getElementById("userId").value;
+    let url = "http://localhost:3000/usuariosrestringido";
+    let method = "POST";
+    if (userId) {
+        url += `/${userId}`;
+        method = "PUT";
+    }
+    ajaxRequest.open(method, url);
+    ajaxRequest.setRequestHeader("Content-Type", "application/json");
+
+    const avatarUrl = document.getElementById("avatar").value;
+    const avatarName = avatarUrl.substring(avatarUrl.lastIndexOf('\\') + 1, avatarUrl.lastIndexOf('.')); // Extraer solo el nombre del archivo sin la extensión
+    const data = {
+        nombre: document.getElementById("nombre").value,
+        pin: document.getElementById("pin").value,
+        avatar: avatarName, // Enviar solo el nombre del archivo sin la extensión
+        edad: document.getElementById("edad").value
+    };
+    ajaxRequest.send(JSON.stringify(data));
+}
+
+
 
 
 

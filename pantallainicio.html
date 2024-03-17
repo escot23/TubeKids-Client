@@ -74,11 +74,15 @@
 
 <body>
     <!-- Barra de navegación -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="#">Pantalla de Inicio</a>
-        </div>
-    </nav>
+    <div id="navbar-container"></div>
+    <script>
+        // Cargar la barra de navegación desde el archivo navbar.html
+        fetch('navbar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('navbar-container').innerHTML = data;
+            });
+    </script>
 
     <div class="container mt-5">
         <h1 class="mb-4">¡Bienvenido a la Pantalla de Inicio!</h1>
@@ -107,14 +111,14 @@
                     const avatarContainer = document.createElement('div');
                     avatarContainer.classList.add('avatar-item');
 
-                    // Crear el enlace alrededor del avatar
+                    // Crea el enlace alrededor del avatar
                     const avatarLink = document.createElement('a');
-                    avatarLink.classList.add('avatar-link'); // Agregar clase para estilo
-                    avatarLink.href = "perfil.html"; // URL del enlace
-                    avatarLink.appendChild(avatarContainer); // Agregar el contenedor del avatar dentro del enlace
+                    avatarLink.classList.add('avatar-link'); // Agrega clase para estilo
+                    avatarLink.href = "administracion.html"; // URL del enlace
+                    avatarLink.appendChild(avatarContainer); // Agrega el contenedor del avatar dentro del enlace
 
                     const avatar = document.createElement('img');
-                    avatar.src = `http://localhost:3000/avatars/${usuario.avatar}`; //aca va la ruta donde tengo las imagenes
+                    avatar.src = `http://localhost:3000/imgavatares/${usuario.avatar}`;
                     console.log(avatar.src);
                     avatar.alt = 'Avatar';
                     avatar.classList.add('avatar');
@@ -123,8 +127,8 @@
                     nombreUsuario.classList.add('nombre-usuario');
 
                     avatarContainer.appendChild(avatar);
+                    console.log(avatar);
                     avatarContainer.appendChild(nombreUsuario);
-
                     usuariosContainer.appendChild(avatarLink); 
                 });
             })
