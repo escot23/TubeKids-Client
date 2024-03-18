@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion de videos</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="#">TUBEKIDS</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="pantallaPrincipal.html" id="volverPagina">Volver</a>
+                </li>
+              
+                <li class="nav-item">
+                    <a class="nav-link" href="playlist.html" id="cerrarSesion">Playlist de videos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="inicioSesion.html" id="cerrarSesion">Salir</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Contenedor principal -->
+    <div class="container mt-4">
+        <h2 class="text-center mb-4">Gestion de videos</h2>
+
+        <!-- Tabla para mostrar los videos -->
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">URL de YouTube</th>
+                        <th scope="col">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaVideos"></tbody>
+            </table>
+        </div>
+
+        <!-- Formulario de edición -->
+        <div class="mt-4" id="formularioEdicion"></div>
+    </div>
+
+    <!-- Bootstrap JS y scripts personalizados -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function cargarVideos() {
+            fetch('http://localhost:3000/videos')
+                .then(response => response.json())
+                .then(videos => {
+                    const tablaVideos = document.getElementById('tablaVideos');
+                    tablaVideos.innerHTML = '';
+
+                    videos.forEach(video => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${video.nombre}</td>
+                            <td>${video.urlYoutube}</td>
+                            <td>
+                                <button type="button" class="btn btn-primary" onclick="mostrarFormularioEdicion('${video._id}', '${video.nombre}', '${video.urlYoutube}')">Editar</button>
+                                <button type="button" class="btn btn-danger" onclick="eliminarVideo('${video._id}')">Eliminar</button>
+                            </td>
+                        `;
+                        tablaVideos.appendChild(row);
+                    });
+                })
+                .catch(error => console.error('Error al cargar la lista de videos:', error));
+        }
+
+        function mostrarFormularioEdicion(videoId, nombre, urlYoutube) {
+            console.log('ID:', videoId); // Verifica el ID en la consola
+            console.log('Nombre:', nombre); // Verifica el nombre en la consola
+            console.log('URL YouTube:', urlYoutube); // Verifica la URL en la consola
+
+            const formularioEdicion = document.getElementById('formularioEdicion');
+            formularioEdicion.innerHTML = ''; // Limpiar contenido anterior
+
+            // Crear el formulario de edición
+            const form = document.createElement('form');
+            form.innerHTML = `
+                <label for="nombreEdit">Nombre:</label>
+                <input type="text" id="nombreEdit" name="nombreEdit" value="${nombre}" required><br>
+
+                <label for="urlYoutubeEdit">URL de YouTube:</label>
+                <input type="text" id="urlYoutubeEdit" name="urlYoutubeEdit" value="${urlYoutube}" required><br>
+
+                <button type="button" class="btn btn-success" onclick="editarVideo('${videoId}')">Guardar Cambios</button>
+                <button type="button" class="btn btn-secondary" onclick="cancelarEdicion()">Cancelar</button>
+            `;
+
+            formularioEdicion.appendChild(form);
+        }
+
+        function editarVideo(videoId) {
+            const nuevoNombre = document.getElementById('nombreEdit').value;
+            const nuevaUrlYoutube = document.getElementById('urlYoutubeEdit').value;
+
+            if (nuevoNombre && nuevaUrlYoutube) {
+                fetch(`http://localhost:3000/videos/${videoId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        nombre: nuevoNombre,
+                        urlYoutube: nuevaUrlYoutube
+                    })
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            alert('Video editado correctamente');
+                            cargarVideos(); // Recargar la lista de videos actualizada
+                            limpiarCampos(); // Limpiar campos del formulario
+                        } else {
+                            throw new Error('Error al editar el video');
+                        }
+                    })
+                    .catch(error => console.error('Error al editar el video:', error));
+            } else {
+                console.log("La edición del video fue cancelada.");
+            }
+        }
+
+        function cancelarEdicion() {
+            const formularioEdicion = document.getElementById('formularioEdicion');
+            formularioEdicion.innerHTML = ''; // Limpiar el formulario de edición
+        }
+
+        function limpiarCampos() {
+            document.getElementById('nombreEdit').value = '';
+            document.getElementById('urlYoutubeEdit').value = '';
+        }
+
+        function eliminarVideo(id) {
+            fetch(`http://localhost:3000/videos/${id}`, {
+                method: 'DELETE'
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('Video eliminado correctamente');
+                        cargarVideos(); // Recargar la lista de videos actualizada
+                    } else {
+                        throw new Error('Error al eliminar el video');
+                    }
+                })
+                .catch(error => console.error('Error al eliminar el video:', error));
+        }
+
+        window.addEventListener('load', cargarVideos);
+    </script>
+</body>
+
+</html>

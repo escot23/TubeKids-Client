@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Video</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar {
+            background-color: #333;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-brand {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .navbar-brand:hover {
+            text-decoration: underline;
+        }
+
+        .navbar-nav {
+            list-style-type: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-item {
+            margin-right: 10px;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .nav-link:hover {
+            background-color: #555;
+        }
+
+        h1 {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+
+        form {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: gray;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        h2 {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        #videoIncrustado iframe {
+            width: 100%;
+            height: 400px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="#">TUBEKIDS</a>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="iniciosesion.html" id="cerrarSesion">Salir</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="pantallaPrincipal.html" id="cerrarSesion">Volver</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="playlistGeneral.html" id="cerrarSesion">Playlist TubeKids</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <h1>Crear Nuevo Video</h1>
+
+    <form id="formCrearVideo">
+        <label for="videoName">Nombre:</label>
+        <input type="text" id="videoName" name="videoName" required><br>
+
+        <label for="videoUrl">URL de YouTube:</label>
+        <input type="text" id="videoUrl" name="videoUrl" required><br>
+
+        <button type="button" onclick="GuardarVideo()">Guardar Video</button>
+    </form>
+
+    <h2>Lista de Videos</h2>
+    <ul id="listaVideos"></ul>
+
+    <h2>Video Incrustado</h2>
+    <div id="videoIncrustado"></div>
+
+    <script>
+        function loadVideos() {
+            console.log('Iniciando carga de videos...');
+            fetch('http://localhost:3000/videos', {
+                method: 'GET'
+            })
+                .then(response => {
+                    console.log('Respuesta recibida:', response);
+                    if (!response.ok) {
+                        throw new Error('La respuesta de la red falló. Código de estado: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(videos => {
+                    console.log('Videos obtenidos:', videos);
+                    const listaVideos = document.getElementById('listaVideos');
+
+                    // Limpiar la lista de videos antes de agregar los nuevos
+                    listaVideos.innerHTML = '';
+                    console.log(listaVideos);
+                    videos.forEach(video => {
+                        const li = document.createElement('li');
+                        const videoLink = document.createElement('a');
+                        videoLink.textContent = video.nombre;
+                        videoLink.href = '#'; // Agrego un href para evitar recarga de página al hacer clic
+                        videoLink.onclick = function () {
+                            mostrarVideoIncrustado(video.urlYoutube);
+                            console.log("video que intenta mostrar", video.urlYoutube);
+                        };
+                        li.appendChild(videoLink);
+                        listaVideos.appendChild(li);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error en la solicitud:', error);
+                    alert("Hubo un error al cargar la lista de videos. Por favor, inténtalo de nuevo más tarde.");
+                });
+        }
+
+        window.addEventListener('load', function () {
+            console.log('La página se ha cargado completamente.');
+            loadVideos();
+        });
+
+        function mostrarVideoIncrustado(url) {
+            console.log('Mostrando video incrustado para URL:', url);
+            const videoId = obtenerVideoId(url);
+
+            if (videoId) {
+                console.log(videoId); // Verifica que se esté obteniendo el ID del video correctamente
+
+                const videoIncrustado = document.getElementById('videoIncrustado');
+                videoIncrustado.innerHTML = ''; // Limpiar contenido anterior
+
+                const iframe = document.createElement('iframe');
+                iframe.src = `https://www.youtube.com/embed/${videoId}`;
+                console.log(iframe.src); // Verifica la URL completa del iframe
+
+                iframe.width = '100%';
+                iframe.height = '400px';
+                iframe.setAttribute('frameborder', '0');
+                iframe.setAttribute('allowfullscreen', '');
+
+                videoIncrustado.appendChild(iframe);
+
+                console.log('Video ID:', videoId);
+                console.log('url de video incrustado', iframe.src);
+            } else {
+                alert('URL de video no válida.');
+            }
+        }
+
+
+        function obtenerVideoId(url) {
+            console.log('Obteniendo ID de video para URL:', url);
+            const regex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+            const match = url.match(regex);
+            console.log('Coincidencia de id de video:', match);
+            if (match) {
+                return match[1];
+            } else {
+                return null;
+            }
+        }
+
+        function GuardarVideo() {
+            const videoName = document.getElementById('videoName').value;
+            let videoUrl = document.getElementById('videoUrl').value;
+
+            // Eliminar parámetros adicionales de la URL de YouTube si los hay
+            const urlParamsIndex = videoUrl.indexOf('?');
+            if (urlParamsIndex !== -1) {
+                videoUrl = videoUrl.substring(0, urlParamsIndex);
+            }
+
+            const ajaxRequest = new XMLHttpRequest();
+            ajaxRequest.addEventListener("load", function () {
+                if (ajaxRequest.status >= 200 && ajaxRequest.status < 300) {
+                    alert('El video se ha guardado correctamente');
+                    // Limpiar el formulario después de guardar el video
+                    document.getElementById('videoName').value = '';
+                    document.getElementById('videoUrl').value = '';
+                    // Recargar la lista de videos actualizada
+                    loadVideos();
+                } else {
+                    console.error('Error en la solicitud:', ajaxRequest.responseText);
+                    alert("Hubo un error al intentar guardar el video");
+                }
+            });
+            ajaxRequest.addEventListener("error", function () {
+                console.error('Error en la solicitud:', ajaxRequest.responseText);
+                alert("Hubo un error al intentar guardar el video");
+            });
+
+            const data = JSON.stringify({ nombre: videoName, urlYoutube: videoUrl });
+            console.log(data);
+            ajaxRequest.open("POST", "http://localhost:3000/videos");
+            ajaxRequest.setRequestHeader("Content-Type", "application/json");
+
+            ajaxRequest.send(data);
+        }
+
+
+    </script>
+</body>
+
+</html>
