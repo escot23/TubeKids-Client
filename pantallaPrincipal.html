@@ -4,70 +4,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pantalla de Inicio</title>
+    <title>Mostrar Usuarios Restringidos</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* Estilos para la barra de navegación */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+
         .navbar {
-            background-color: #343a40; /* Color de fondo */
-            padding: 1rem 0; /* Espaciado interno */
+            background-color: #343a40;
+            padding: 1rem 0;
+            border-radius: 0;
         }
 
         .navbar-brand {
-            color: #fff; /* Color del texto */
-            font-size: 1.5rem; /* Tamaño del texto */
+            color: #fff;
+            font-size: 1.5rem;
         }
 
         .navbar-nav .nav-link {
-            color: #fff; /* Color del texto */
+            color: #fff;
         }
 
-        /* Estilos para la sección de avatares */
-        .avatar-container {
+        .navbar-nav .nav-link:hover {
+            color: #007bff;
+        }
+
+        .navbar-toggler-icon {
+            background-color: #fff;
+        }
+
+        .usuarios-container {
             display: flex;
             flex-wrap: wrap;
+            gap: 20px;
             justify-content: center;
             margin-top: 20px;
         }
 
-        .avatar-item {
-            margin: 10px;
+        .usuario-card {
+            width: 200px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 10px;
             text-align: center;
             transition: transform 0.3s ease;
         }
 
-        .avatar-item:hover {
+        .usuario-card:hover {
             transform: translateY(-5px);
         }
 
-        .avatar {
+        .usuario-avatar {
             width: 100px;
             height: 100px;
             border-radius: 50%;
-            margin-bottom: 5px;
+            margin: 10px auto;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             transition: box-shadow 0.3s ease;
         }
 
-        .avatar:hover {
+        .usuario-avatar:hover {
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
         }
 
-        .nombre-usuario {
+        .usuario-nombre {
             font-weight: bold;
-        }
-
-        /* Estilo para el enlace */
-        .avatar-link {
-            text-decoration: none; /* Quitar subrayado */
-            color: inherit; /* Heredar el color del texto */
-        }
-
-        /* Estilo para el enlace de administración */
-        .admin-link {
-            color: #007bff; /* Color del enlace */
-            text-decoration: none; /* Quitar subrayado */
-            font-weight: bold; /* Negrita */
+            color: #333;
         }
     </style>
 </head>
@@ -80,7 +86,14 @@
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="gestionVideos.html" id="cerrarSesion">Gestion de videos tubekids</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="registroUsuariosRestringidos.html" id="cerrarSesion">Gestion de usuarios
+                        Restringidos Tubekids</a>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link" href="iniciosesion.html" id="cerrarSesion">Salir</a>
                 </li>
@@ -88,79 +101,131 @@
         </div>
     </nav>
 
-    <div class="container mt-5">
-        <h1 class="mb-4">¡Bienvenido a la Pantalla de Inicio!</h1>
-        <p>Selecciona tu perfil:</p>
+    <div class="usuarios-container" id="usuariosContainer"></div>
 
-        <!-- Visualización de avatares y nombres de usuarios restringidos -->
-        <div class="mt-4">
-            <h2>Usuarios Restringidos</h2>
-            <div id="usuarios-container" class="avatar-container"></div>
+    <!-- Modal para ingresar el PIN -->
+    <div class="modal fade" id="pinModal" tabindex="-1" role="dialog" aria-labelledby="pinModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pinModalLabel">Ingresar PIN</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="password" id="pinInput" class="form-control" placeholder="Ingrese su PIN">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="verificarPin()">Aceptar</button>
+                </div>
+            </div>
         </div>
+    </div>
 
-<script>
-    // Obtener los datos de los usuarios restringidos y mostrarlos en la página
-    fetch('http://localhost:3000/usuariosrestringido/cargar')
-    .then(response => response.json())
-    .then(data => {
-        const usuariosContainer = document.getElementById('usuarios-container');
-        data.forEach(usuario => {
-            const avatarContainer = document.createElement('div');
-            avatarContainer.classList.add('avatar-item');
+    <script>
+        let usuarioSeleccionadoId = null;
 
-            // Crea el enlace alrededor del avatar
-            const avatarLink = document.createElement('a');
-            avatarLink.classList.add('avatar-link'); // Agrega clase para estilo
-            avatarLink.href = "registroUsuariosRestringidos.html"; // URL del enlace
-            avatarLink.appendChild(avatarContainer); // Agrega el contenedor del avatar dentro del enlace
+        // Obtener los datos de los usuarios restringidos y mostrarlos en la página
+        fetch('http://localhost:3000/usuariosrestringido/cargar')
+            .then(response => response.json())
+            .then(data => {
+                const usuariosContainer = document.getElementById('usuariosContainer');
+                data.forEach(usuario => {
+                    const usuarioCard = document.createElement('div');
+                    usuarioCard.classList.add('usuario-card');
 
-            const avatar = document.createElement('img');
-            avatar.onerror = function() {
-                console.error('Error al cargar la imagen:', avatar.src);
-            };
-            avatar.src = `http://localhost:3000/imgavatares/${usuario.avatar}`;
-            console.log(avatar.src);
-            avatar.alt = 'Avatar';
-            avatar.classList.add('avatar');
-            const nombreUsuario = document.createElement('div');
-            nombreUsuario.textContent = usuario.nombre;
-            nombreUsuario.classList.add('nombre-usuario');
+                    // Verificar si _id está definido y no es undefined
+                    if (usuario._id) {
+                        const avatar = document.createElement('img');
+                        avatar.src = usuario.avatar;
+                        avatar.alt = 'Avatar';
+                        avatar.classList.add('usuario-avatar');
+                        avatar.addEventListener('click', function () {
+                            mostrarPinModal(usuario._id);
+                        });
 
-            avatarContainer.appendChild(avatar);
-            console.log(avatar);
-            avatarContainer.appendChild(nombreUsuario);
-            usuariosContainer.appendChild(avatarLink);
+                        const nombreUsuario = document.createElement('div');
+                        nombreUsuario.textContent = usuario.nombre;
+                        nombreUsuario.classList.add('usuario-nombre');
 
-          
-        });
-    })
-    .catch(error => console.error('Error al obtener usuarios restringidos:', error));
+                        usuarioCard.appendChild(avatar);
+                        usuarioCard.appendChild(nombreUsuario);
+                        usuariosContainer.appendChild(usuarioCard);
+                    } else {
+                        console.log('ID de usuario no válido:', usuario);
+                    }
+                });
+            })
+            .catch(error => console.error('Error al obtener usuarios restringidos:', error));
 
-// Función para autenticar al usuario
-const autenticarUsuario = async (pin) => {
-    try {
-        const response = await fetch('http://localhost:3000/autenticarUsuario', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ pin })
-        });
+        const mostrarPinModal = (usuarioId) => {
+            console.log("si cargue", usuarioId);
+            usuarioSeleccionadoId = usuarioId;
+            const modal = document.getElementById('pinModal');
+            modal.classList.add('show');
+            modal.style.display = 'block';
+            modal.removeAttribute('aria-hidden');
+            document.body.classList.add('modal-open');
+            const backdrop = document.createElement('div');
+            backdrop.classList.add('modal-backdrop', 'fade', 'show');
+            document.body.appendChild(backdrop);
+        };
 
-        const data = await response.json();
-        if (response.ok) {
-            alert(data.message); // Autenticación exitosa
-            window.location.href = 'gestionvideos.html'; // Redirigir a la página de Gestión de Videos
-        } else {
-            alert(data.error); // PIN incorrecto u otros errores
-        }
-    } catch (error) {
-        console.error('Error al autenticar el usuario:', error);
-        alert('Hubo un error al intentar autenticar al usuario');
-    }
-};
-</script>
+        const verificarPin = () => {
+            const pinIngresado = document.getElementById('pinInput').value;
 
+            // Obtener el token JWT del almacenamiento de sesión del navegador
+            const token = sessionStorage.getItem('token');
+            console.log("el token es", token);
+
+            // Obtener el ID del usuario principal del token JWT decodificado
+            let userId;
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                userId = payload.userId;
+            } catch (error) {
+                console.error('Error al decodificar el token JWT:', error);
+                return;
+            }
+
+            // Verificar si el token está presente
+            if (!token) {
+                alert('No se ha iniciado sesión.');
+                return;
+            }
+            console.log("id principal",userId);
+
+            // Hacer la solicitud al servidor para verificar el PIN
+            fetch('http://localhost:3000/validarPin', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` // Incluye el token JWT en el encabezado
+                }, 
+                body: JSON.stringify({
+                    userId: userId, // Enviar el ID del usuario principal
+                    pin: pinIngresado
+                })
+                
+            }) 
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message === 'PIN válido.') {
+                        // Redirigir a la página del playlist si el PIN es válido
+                        window.location.href = 'playlist.html';
+                    } else {
+                        alert('PIN incorrecto. Por favor, inténtalo de nuevo.');
+                    }
+                })
+                .catch(error => console.error('Error al verificar PIN:', error));
+        };
+
+
+
+    </script>
 </body>
 
 </html>

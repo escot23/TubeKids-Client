@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuarios Restringidos</title>
+    <!-- Agregar enlaces a Bootstrap CSS y JS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="container mt-5">
+        <h1 class="mb-4">Usuarios Restringidos</h1>
+        <!-- Tabla para mostrar los usuarios restringidos -->
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Avatar</th>
+                    <th>Nombre</th>
+                    <th>PIN</th>
+                    <th>Edad</th>
+                    <th>Acciones</th> <!-- Agregamos la columna de acciones -->
+                </tr>
+            </thead>
+            <tbody id="usuarios-restringidos-body">
+                <!-- Aquí se llenará dinámicamente con datos de usuarios restringidos -->
+            </tbody>
+        </table>
+        
+
+
+        <div id="formularioEdicionContainer"></div>
+
+    </div>
+
+    <!-- Agregar enlace al script de Bootstrap JS al final del body -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Función para cargar los usuarios restringidos en la tabla
+        // Función para cargar los usuarios restringidos en la tabla
+        function cargarUsuariosRestringidos() {
+            fetch('http://localhost:3000/usuariosrestringido/mostrar')
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.getElementById('usuarios-restringidos-body');
+                    tbody.innerHTML = ''; // Limpiamos el cuerpo de la tabla antes de cargar nuevos datos
+                    data.forEach(usuario => {
+                        if (usuario._id) { // Verificar si _id está definido y no es undefined
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                        <td><img src="${usuario.avatar}" alt="Avatar" class="rounded-circle" style="width: 50px; height: 50px;"></td>
+                        <td>${usuario.nombre}</td>
+                        <td>${usuario.pin}</td>
+                        <td>${usuario.edad}</td>
+                        <td>
+                            <button type="button" class="btn btn-primary btn-sm" onclick="mostrarFormularioEdicion('${usuario._id}', '${usuario.nombre}', '${usuario.pin}', '${usuario.avatar}', '${usuario.edad}')">Editar</button>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="eliminarUsuario('${usuario._id}')">Eliminar</button>
+                        </td>
+                    `;
+                            tbody.appendChild(tr);
+                        } else {
+                            console.error('El usuario no tiene un ID válido:', usuario);
+                        }
+                    });
+                })
+                .catch(error => console.error('Error al obtener usuarios restringidos:', error));
+        }
+
+
+        // Función para mostrar el formulario de edición
+        function mostrarFormularioEdicion(usuarioId, nombre, pin, avatar, edad) {
+            console.log('ID:', usuarioId); // Verifica el ID en la consola
+            console.log('Nombre:', nombre); // Verifica el nombre en la consola
+            console.log('PIN:', pin); // Verifica el PIN en la consola
+            console.log('Avatar:', avatar); // Verifica el avatar en la consola
+            console.log('Edad:', edad); // Verifica la edad en la consola
+
+            const formularioEdicionContainer = document.getElementById('formularioEdicionContainer');
+            formularioEdicionContainer.innerHTML = ''; // Limpiar contenido anterior
+
+            // Crear el formulario de edición
+            const form = document.createElement('form');
+            form.innerHTML = `
+        <label for="nombreEdit">Nombre:</label>
+        <input type="text" id="nombreEdit" name="nombreEdit" value="${nombre}" required><br>
+
+        <label for="pinEdit">PIN:</label>
+        <input type="text" id="pinEdit" name="pinEdit" value="${pin}" required><br>
+
+        <label for="avatarEdit">Avatar:</label>
+        <input type="text" id="avatarEdit" name="avatarEdit" value="${avatar}" required><br>
+
+        <label for="edadEdit">Edad:</label>
+        <input type="number" id="edadEdit" name="edadEdit" value="${edad}" required><br>
+
+        <button type="button" class="btn btn-success" onclick="editarUsuario('${usuarioId}')">Guardar Cambios</button>
+        <button type="button" class="btn btn-secondary" onclick="cancelarEdicion()">Cancelar</button>
+    `;
+
+            formularioEdicionContainer.appendChild(form);
+        }
+
+        // Función para editar un usuario restringido
+        function editarUsuario(usuarioId) {
+            const nuevoNombre = document.getElementById('nombreEdit').value;
+            const nuevoPin = document.getElementById('pinEdit').value;
+            const nuevoAvatar = document.getElementById('avatarEdit').value;
+            const nuevaEdad = document.getElementById('edadEdit').value;
+
+            if (nuevoNombre && nuevoPin && nuevoAvatar && nuevaEdad) {
+                fetch(`http://localhost:3000/usuariosrestringido/${usuarioId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        nombre: nuevoNombre,
+                        pin: nuevoPin,
+                        avatar: nuevoAvatar,
+                        edad: nuevaEdad
+                    })
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            alert('Usuario restringido editado correctamente');
+                            cargarUsuariosRestringidos(); // Recargar la lista de usuarios restringidos actualizada
+                            limpiarCampos(); // Limpiar campos del formulario
+                        } else {
+                            throw new Error('Error al editar el usuario restringido');
+                        }
+                    })
+                    .catch(error => console.error('Error al editar el usuario restringido:', error));
+            } else {
+                console.log("La edición del usuario restringido fue cancelada.");
+            }
+        }
+
+        // Función para eliminar un usuario restringido
+        function eliminarUsuario(usuarioId) {
+            const confirmacion = confirm('¿Estás seguro de eliminar este usuario restringido?');
+            if (confirmacion) {
+                fetch(`http://localhost:3000/usuariosrestringido/${usuarioId}`, {
+                    method: 'DELETE'
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            alert('Usuario restringido eliminado correctamente');
+                            cargarUsuariosRestringidos(); // Recargar la lista de usuarios restringidos actualizada
+                        } else {
+                            throw new Error('Error al eliminar el usuario restringido');
+                        }
+                    })
+                    .catch(error => console.error('Error al eliminar el usuario restringido:', error));
+            }
+        }
+
+        // Función para cancelar la edición del usuario restringido
+        function cancelarEdicion() {
+            const formularioEdicion = document.getElementById('formularioEdicion');
+            formularioEdicion.innerHTML = ''; // Limpiar el formulario de edición
+        }
+
+        // Función para limpiar los campos del formulario de edición
+        function limpiarCampos() {
+            document.getElementById('nombreEdit').value = '';
+            document.getElementById('pinEdit').value = '';
+            document.getElementById('avatarEdit').value = '';
+            document.getElementById('edadEdit').value = '';
+        }
+        // Cargar los usuarios restringidos al cargar la página
+        cargarUsuariosRestringidos();
+    </script>
+</body>
+
+</html>

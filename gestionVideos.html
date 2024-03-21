@@ -66,6 +66,7 @@
 
                     videos.forEach(video => {
                         const row = document.createElement('tr');
+                        console.log("id si",video._id);
                         row.innerHTML = `
                             <td>${video.nombre}</td>
                             <td>${video.urlYoutube}</td>
