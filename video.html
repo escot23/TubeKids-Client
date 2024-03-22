@@ -5,151 +5,112 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crear Video</title>
+    <!-- Enlace a Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-
-        .navbar {
-            background-color: #333;
-            padding: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .navbar-brand {
-            color: white;
-            font-size: 24px;
-            font-weight: bold;
-            text-decoration: none;
-        }
-
-        .navbar-brand:hover {
-            text-decoration: underline;
-        }
-
-        .navbar-nav {
-            list-style-type: none;
-            display: flex;
-            align-items: center;
-        }
-
-        .nav-item {
-            margin-right: 10px;
-        }
-
-        .nav-link {
-            color: white;
-            text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
-        }
-
-        .nav-link:hover {
-            background-color: #555;
+        /* Estilos personalizados */
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
         }
 
         h1 {
-            margin-top: 20px;
             text-align: center;
+            margin-bottom: 30px;
         }
 
-
-        form {
-            max-width: 400px;
-            margin: 0 auto;
+        .form-group {
+            margin-bottom: 20px;
         }
 
-        label {
-            display: block;
-            margin-bottom: 5px;
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            margin-top: 30px;
         }
 
-        input[type="text"] {
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
+            height: 100%;
         }
 
-        button {
-            padding: 8px 16px;
-            background-color: #007bff;
-            color: gray;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+        /* Estilos modificados para el navbar */
+        .navbar-brand {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff6f61; /* Color rojo llamativo */
         }
 
-        button:hover {
-            background-color: #0056b3;
+        .navbar-nav .nav-link {
+            font-size: 18px;
+            color:white; /* Color texto */
+            transition: color 0.3s ease;
         }
 
-        h2 {
-            margin-top: 20px;
-            text-align: center;
+        .navbar-nav .nav-link:hover {
+            color: #ff6f61; /* Color rojo llamativo al pasar el mouse */
         }
 
-        ul {
-            list-style-type: none;
-            padding: 0;
+        .navbar-toggler-icon {
+            background-color: #ff6f61; /* Color del icono del botón */
         }
 
-        li {
-            margin-bottom: 10px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: #f9f9f9;
+        .navbar-dark .navbar-toggler {
+            border-color: #ff6f61; /* Color del borde del botón al desplegarse */
         }
 
-        #videoIncrustado iframe {
-            width: 100%;
-            height: 400px;
+        .navbar-dark .navbar-toggler:hover {
+            background-color: #ff6f61; /* Color de fondo del botón al pasar el mouse */
         }
     </style>
 </head>
 
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <a class="navbar-brand" href="#">TUBEKIDS</a>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link" href="iniciosesion.html" id="cerrarSesion">Salir</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="pantallaPrincipal.html" id="cerrarSesion">Volver</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="playlistGeneral.html" id="cerrarSesion">Playlist TubeKids</a>
-                </li>
-            </ul>
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">TUBEKIDS</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="pantallaPrincipal.html">Pantalla Principal Tubekids</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="gestionVideos.html">Gestion Videos Tubekids</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="iniciosesion.html">Salir</a>
+                    </li>
+                </ul>
+            </div>
         </div>
     </nav>
-    <h1>Crear Nuevo Video</h1>
-
-    <form id="formCrearVideo">
-        <label for="videoName">Nombre:</label>
-        <input type="text" id="videoName" name="videoName" required><br>
-
-        <label for="videoUrl">URL de YouTube:</label>
-        <input type="text" id="videoUrl" name="videoUrl" required><br>
-
-        <button type="button" onclick="GuardarVideo()">Guardar Video</button>
-    </form>
-
-    <h2>Lista de Videos</h2>
-    <ul id="listaVideos"></ul>
-
-    <h2>Video Incrustado</h2>
-    <div id="videoIncrustado"></div>
-
+    <div class="container">
+        <h1>Crear Nuevo Video</h1>
+        <form id="formCrearVideo">
+            <div class="form-group">
+                <label for="videoName">Nombre:</label>
+                <input type="text" class="form-control" id="videoName" name="videoName" required>
+            </div>
+            <div class="form-group">
+                <label for="videoUrl">URL de YouTube:</label>
+                <input type="text" class="form-control" id="videoUrl" name="videoUrl" required>
+            </div>
+            <button type="button" class="btn btn-primary" onclick="GuardarVideo()">Guardar Video</button>
+        </form>
+        <h2 class="mt-4">Lista de Videos</h2>
+        <ul id="listaVideos" class="list-group"></ul>
+        <h2 class="mt-4">Video Incrustado</h2>
+        <div id="videoIncrustado" class="video-container"></div>
+    </div>
     <script>
         function loadVideos() {
             console.log('Iniciando carga de videos...');

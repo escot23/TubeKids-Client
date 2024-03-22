@@ -20,11 +20,22 @@
 
         /* Estilos para el navbar */
         .navbar {
-            background-color: #343a40 !important;
+            background-color: #ff6f61 !important; /* Color de fondo llamativo */
         }
 
         .navbar-brand {
             font-size: 1.5rem;
+            color: #fff; /* Color del texto del navbar */
+            font-weight: bold;
+        }
+
+        .navbar-nav .nav-link {
+            color: #fff !important; /* Color del texto de los enlaces */
+            transition: color 0.3s ease;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: #fff !important; /* Color del texto de los enlaces al pasar el mouse */
         }
 
         /* Estilos para el formulario */
@@ -50,27 +61,32 @@
             width: 120px;
             text-align: center;
             cursor: pointer;
-        }
-
-        .character-card img {
-            width: 100px;
-            border-radius: 50%;
-            margin-bottom: 5px;
+            border: 2px solid #ff6f61; /* Borde de los personajes */
+            border-radius: 10px; /* Esquinas redondeadas */
+            padding: 5px;
+            background-color: #fff; /* Color de fondo de los personajes */
             transition: transform 0.3s ease-in-out;
         }
 
-        .character-card img:hover {
-            transform: scale(1.1);
+        .character-card:hover {
+            transform: scale(1.05); /* Efecto de aumento al pasar el mouse */
+        }
+
+        .character-card img {
+            width: 80px;
+            border-radius: 50%;
+            margin-bottom: 5px;
         }
 
         .btn-primary {
-            background-color: #007bff;
-            border-color: #007bff;
+            background-color: #ff6f61;
+            border-color: #ff6f61;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
 
         .btn-primary:hover {
-            background-color: #0056b3;
-            border-color: #0056b3;
+            background-color: #ff3e35; /* Color más oscuro al pasar el mouse */
+            border-color: #ff3e35; /* Borde más oscuro al pasar el mouse */
         }
     </style>
 </head>

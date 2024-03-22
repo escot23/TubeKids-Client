@@ -79,20 +79,16 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <a class="navbar-brand" href="#">TUBEKIDS</a>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-info container-fluid">
+        <a class="navbar-brand mx-auto" href="#">TUBEKIDS</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
             aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ml-auto">
+        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+            <ul class="navbar-nav mr-3">
                 <li class="nav-item">
-                    <a class="nav-link" href="gestionVideos.html" id="cerrarSesion">Gestion de videos tubekids</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="registroUsuariosRestringidos.html" id="cerrarSesion">Gestion de usuarios
-                        Restringidos Tubekids</a>
+                    <a class="nav-link" href="video.html" id="video">Gestión de videos TubeKids</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="iniciosesion.html" id="cerrarSesion">Salir</a>
@@ -100,6 +96,9 @@
             </ul>
         </div>
     </nav>
+    
+    
+    
 
     <div class="usuarios-container" id="usuariosContainer"></div>
 
@@ -118,48 +117,93 @@
                     <input type="password" id="pinInput" class="form-control" placeholder="Ingrese su PIN">
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" onclick="verificarPin()">Aceptar</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" aria-label="Close" onclick="cerrarModal('modalId')">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="GetPin()">Aceptar</button>
                 </div>
             </div>
         </div>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <script>
-        let usuarioSeleccionadoId = null;
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('video').addEventListener('click', function (e) {
+                e.preventDefault(); 
+                mostrarPinModal();
+            });
+        });
 
-        // Obtener los datos de los usuarios restringidos y mostrarlos en la página
-        fetch('http://localhost:3000/usuariosrestringido/cargar')
-            .then(response => response.json())
-            .then(data => {
-                const usuariosContainer = document.getElementById('usuariosContainer');
-                data.forEach(usuario => {
-                    const usuarioCard = document.createElement('div');
-                    usuarioCard.classList.add('usuario-card');
+        function fetchUsuariosRestringidos() {
+            const ajaxRequest = new XMLHttpRequest();
+            ajaxRequest.addEventListener("load", () => {
+                const responseData = JSON.parse(ajaxRequest.responseText);
+                renderUsuariosRestringidos(responseData);
+            });
+            ajaxRequest.addEventListener("error", (error) => console.error("Error fetching usuarios restringidos:", error));
+            ajaxRequest.open("GET", "http://localhost:3000/getdatos");
+            ajaxRequest.setRequestHeader("Content-Type", "application/json");
+            ajaxRequest.send();
+        }
 
-                    // Verificar si _id está definido y no es undefined
-                    if (usuario._id) {
-                        const avatar = document.createElement('img');
-                        avatar.src = usuario.avatar;
-                        avatar.alt = 'Avatar';
-                        avatar.classList.add('usuario-avatar');
-                        avatar.addEventListener('click', function () {
-                            mostrarPinModal(usuario._id);
-                        });
+        function GetPin() {
+            // Obtener el token JWT del almacenamiento local
+            const token = sessionStorage.getItem('token');
+            console.log('Token JWT:', token);
 
-                        const nombreUsuario = document.createElement('div');
-                        nombreUsuario.textContent = usuario.nombre;
-                        nombreUsuario.classList.add('usuario-nombre');
+            const ajaxRequest = new XMLHttpRequest();
+            ajaxRequest.addEventListener("load", () => {
+                const responseData = JSON.parse(ajaxRequest.responseText);
+                //const users = responseData.users;
+                const pinPrincipal = responseData.pin;
+                console.log(pinPrincipal);
+                verificarPin(pinPrincipal);                
+            });
+            ajaxRequest.addEventListener("error", (error) => console.error("Error fetching users:", error));
+            ajaxRequest.open("GET", "http://localhost:3000/usuariosrestringido/cargar");
+            ajaxRequest.setRequestHeader("Content-Type", "application/json");
 
-                        usuarioCard.appendChild(avatar);
-                        usuarioCard.appendChild(nombreUsuario);
-                        usuariosContainer.appendChild(usuarioCard);
-                    } else {
-                        console.log('ID de usuario no válido:', usuario);
-                    }
-                });
-            })
-            .catch(error => console.error('Error al obtener usuarios restringidos:', error));
+            // Incluir el token JWT en el encabezado Authorization correctamente
+            ajaxRequest.setRequestHeader("Authorization", `Bearer ${token}`);
+
+            ajaxRequest.send();
+        }
+
+
+        function renderUsuariosRestringidos(usuarios) {
+    const usuariosContainer = document.getElementById('usuariosContainer');
+    usuariosContainer.innerHTML = ''; // Limpiar el contenedor antes de renderizar nuevos usuarios
+
+    usuarios.forEach(usuario => {
+        const usuarioCard = document.createElement('div');
+        usuarioCard.classList.add('usuario-card');
+
+        const avatar = document.createElement('img');
+        avatar.src = usuario.avatar;
+        avatar.alt = 'Avatar';
+        avatar.classList.add('usuario-avatar');
+
+        const nombreUsuario = document.createElement('div');
+        nombreUsuario.textContent = usuario.nombre;
+        nombreUsuario.classList.add('usuario-nombre');
+
+        usuarioCard.appendChild(avatar);
+        usuarioCard.appendChild(nombreUsuario);
+        usuariosContainer.appendChild(usuarioCard);
+
+        console.log("este es el pin restringido", usuario.pin);
+        avatar.addEventListener('click', function () {
+            const pinUsuario = prompt(`Ingrese el PIN del usuario ${usuario.nombre}:`);
+            if (pinUsuario === usuario.pin) {
+                alert('PIN correcto. Acceso permitido.');
+                window.location.href = 'playlist.html'; // Redireccionar a playlist.html
+            } else {
+                alert('PIN incorrecto. Acceso denegado.');
+            }
+        });
+    });
+}
+
 
         const mostrarPinModal = (usuarioId) => {
             console.log("si cargue", usuarioId);
@@ -174,55 +218,20 @@
             document.body.appendChild(backdrop);
         };
 
-        const verificarPin = () => {
-            const pinIngresado = document.getElementById('pinInput').value;
-
-            // Obtener el token JWT del almacenamiento de sesión del navegador
-            const token = sessionStorage.getItem('token');
-            console.log("el token es", token);
-
-            // Obtener el ID del usuario principal del token JWT decodificado
-            let userId;
-            try {
-                const payload = JSON.parse(atob(token.split('.')[1]));
-                userId = payload.userId;
-            } catch (error) {
-                console.error('Error al decodificar el token JWT:', error);
-                return;
+        function verificarPin(PinPrincipal) {
+            const pinUsuario = document.getElementById('pinInput').value; // Obtener el PIN ingresado por el usuario
+            if (pinUsuario === PinPrincipal) {
+                alert('PIN correcto. Acceso permitido.'); // Mensaje de acceso permitido
+                window.location.href = 'video.html'; // Redireccionar a playlist.html
+            } else {
+                alert('PIN incorrecto. Acceso denegado.'); // Mensaje de acceso denegado
             }
+        }
 
-            // Verificar si el token está presente
-            if (!token) {
-                alert('No se ha iniciado sesión.');
-                return;
-            }
-            console.log("id principal",userId);
-
-            // Hacer la solicitud al servidor para verificar el PIN
-            fetch('http://localhost:3000/validarPin', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` // Incluye el token JWT en el encabezado
-                }, 
-                body: JSON.stringify({
-                    userId: userId, // Enviar el ID del usuario principal
-                    pin: pinIngresado
-                })
-                
-            }) 
-                .then(response => response.json())
-                .then(data => {
-                    if (data.message === 'PIN válido.') {
-                        // Redirigir a la página del playlist si el PIN es válido
-                        window.location.href = 'playlist.html';
-                    } else {
-                        alert('PIN incorrecto. Por favor, inténtalo de nuevo.');
-                    }
-                })
-                .catch(error => console.error('Error al verificar PIN:', error));
-        };
-
+        // Cargar los usuarios restringidos al cargar la página
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchUsuariosRestringidos();
+        });
 
 
     </script>
