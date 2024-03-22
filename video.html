@@ -87,6 +87,9 @@
                         <a class="nav-link" href="gestionVideos.html">Gestion Videos Tubekids</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="mostrarUsuariosRestringidos.html">Visualizar usuarios Tubekids</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="iniciosesion.html">Salir</a>
                     </li>
                 </ul>
@@ -112,43 +115,48 @@
         <div id="videoIncrustado" class="video-container"></div>
     </div>
     <script>
-        function loadVideos() {
-            console.log('Iniciando carga de videos...');
-            fetch('http://localhost:3000/videos', {
-                method: 'GET'
-            })
-                .then(response => {
-                    console.log('Respuesta recibida:', response);
-                    if (!response.ok) {
-                        throw new Error('La respuesta de la red falló. Código de estado: ' + response.status);
-                    }
-                    return response.json();
-                })
-                .then(videos => {
-                    console.log('Videos obtenidos:', videos);
-                    const listaVideos = document.getElementById('listaVideos');
-
-                    // Limpiar la lista de videos antes de agregar los nuevos
-                    listaVideos.innerHTML = '';
-                    console.log(listaVideos);
-                    videos.forEach(video => {
-                        const li = document.createElement('li');
-                        const videoLink = document.createElement('a');
-                        videoLink.textContent = video.nombre;
-                        videoLink.href = '#'; // Agrego un href para evitar recarga de página al hacer clic
-                        videoLink.onclick = function () {
-                            mostrarVideoIncrustado(video.urlYoutube);
-                            console.log("video que intenta mostrar", video.urlYoutube);
-                        };
-                        li.appendChild(videoLink);
-                        listaVideos.appendChild(li);
-                    });
-                })
-                .catch(error => {
-                    console.error('Error en la solicitud:', error);
-                    alert("Hubo un error al cargar la lista de videos. Por favor, inténtalo de nuevo más tarde.");
-                });
+    function loadVideos() {
+    const token = sessionStorage.getItem('token');
+            console.log("....token.....",token);
+    fetch('http://localhost:3000/videos', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}` // Incluir el token JWT en el encabezado Authorization
         }
+    })
+    .then(response => {
+        console.log('Respuesta recibida:', response);
+        if (!response.ok) {
+            throw new Error('La respuesta de la red falló. Código de estado: ' + response.status);
+        }
+        return response.json();
+    })
+    .then(videos => {
+        console.log('Videos obtenidos:', videos);
+        const listaVideos = document.getElementById('listaVideos');
+
+        // Limpiar la lista de videos antes de agregar los nuevos
+        listaVideos.innerHTML = '';
+        console.log("Lista de videos",listaVideos);
+        videos.forEach(video => {
+            const li = document.createElement('li');
+            const videoLink = document.createElement('a');
+            videoLink.textContent = video.nombre;
+            videoLink.href = '#'; // Agrego un href para evitar recarga de página al hacer clic
+            videoLink.onclick = function () {
+                mostrarVideoIncrustado(video.urlYoutube);
+                console.log("video que intenta mostrar", video.urlYoutube);
+            };
+            li.appendChild(videoLink);
+            listaVideos.appendChild(li);
+        });
+    })
+    .catch(error => {
+        console.error('Error en la solicitud:', error);
+        alert("Hubo un error al cargar la lista de videos. Por favor, inténtalo de nuevo más tarde.");
+    });
+}
+
 
         window.addEventListener('load', function () {
             console.log('La página se ha cargado completamente.');
@@ -199,6 +207,7 @@
         function GuardarVideo() {
             const videoName = document.getElementById('videoName').value;
             let videoUrl = document.getElementById('videoUrl').value;
+            const token = sessionStorage.getItem('token');
 
             // Eliminar parámetros adicionales de la URL de YouTube si los hay
             const urlParamsIndex = videoUrl.indexOf('?');
@@ -226,10 +235,11 @@
             });
 
             const data = JSON.stringify({ nombre: videoName, urlYoutube: videoUrl });
-            console.log(data);
+            console.log(".,.,.,",data);
             ajaxRequest.open("POST", "http://localhost:3000/videos");
             ajaxRequest.setRequestHeader("Content-Type", "application/json");
-
+            ajaxRequest.setRequestHeader("Authorization", `Bearer ${token}`);
+            console.log(data);
             ajaxRequest.send(data);
         }
 
